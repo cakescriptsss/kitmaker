@@ -11,10 +11,16 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #333; background: #2a2a2a; color: #fff; box-sizing: border-box;}
         input[type="checkbox"] { width: auto; }
-        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
         button:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #bd2130; }
+        .btn-success { background: #28a745; display: none; width: 100%; font-size: 16px; margin-top: 10px; }
+        .btn-success:hover { background: #218838; }
         #result { margin-top: 20px; display: none; }
         #result img { max-width: 100%; border: 2px solid #333; border-radius: 4px; }
+        .button-group { display: flex; gap: 10px; }
+        .button-group button { flex: 1; }
     </style>
 </head>
 <body>
@@ -63,17 +69,23 @@
                 <option value="undershirt">Undershirt</option>
             </select>
         </div>
-        <button type="submit">Generate Kit</button>
+        
+        <div class="button-group">
+            <button type="submit">Generate Kit</button>
+            <button type="button" id="clearBtn" class="btn-danger">Clear All</button>
+        </div>
     </form>
 
     <div id="result">
         <h3>Your Generated Kit:</h3>
         <img id="kitImage" src="" alt="Generated Kit">
+        <button type="button" id="downloadBtn" class="btn-success">Download PNG</button>
     </div>
 </div>
 
 <script>
     const BACKEND_URL = "https://cakemakebakekit-kitmaker.hf.space";
+    let currentImageBlobUrl = null;
 
     document.getElementById('kitForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -98,12 +110,47 @@
             if (!response.ok) throw new Error("Generation failed");
 
             const blob = await response.blob();
-            const imageUrl = URL.createObjectURL(blob);
             
-            document.getElementById('kitImage').src = imageUrl;
+            // Clean up old object URL memory if creating multiple kits back-to-back
+            if (currentImageBlobUrl) {
+                URL.revokeObjectURL(currentImageBlobUrl);
+            }
+
+            currentImageBlobUrl = URL.createObjectURL(blob);
+            
+            document.getElementById('kitImage').src = currentImageBlobUrl;
             document.getElementById('result').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'block';
         } catch (error) {
             alert("Error generating kit: " + error.message);
+        }
+    });
+
+    // Download Feature: Uses player name field to title the download
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        if (!currentImageBlobUrl) return;
+        
+        const playerName = document.getElementById('name').value.trim() || "kit";
+        const cleanName = playerName.toLowerCase().replace(/[^a-z0-9]/gi, '_'); // Sanitizes spaces/special chars
+        
+        const link = document.createElement('a');
+        link.href = currentImageBlobUrl;
+        link.download = `kit_${cleanName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Reset/Clear Feature: Restores the page layout completely
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('kitForm').reset();
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('downloadBtn').style.display = 'none';
+        document.getElementById('kitImage').src = "";
+        
+        if (currentImageBlobUrl) {
+            URL.revokeObjectURL(currentImageBlobUrl);
+            currentImageBlobUrl = null;
         }
     });
 </script>
