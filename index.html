@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cake Kit Maker</title>
+    <title>Cake Mps Kit Generator</title>
     <style>
         body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; text-align: center; }
         h2 { margin-bottom: 25px; }
@@ -42,12 +42,12 @@
 <body>
 
 <div class="container">
-    <h2>Mps Kit Maker</h2>
+    <h2>Cake Kit Maker</h2>
     <form id="kitForm">
         <div class="creator-layout">
             
             <div class="column-advanced">
-                <p class="section-title">Advanced Settings</p>
+                <p class="section-title">⚙️ Advanced Settings</p>
                 <div class="form-group">
                     <label>Name Size</label>
                     <input type="number" id="name_size" value="20" min="5" max="200">
@@ -67,7 +67,7 @@
             </div>
             
             <div class="column-main">
-                <p class="section-title">Kit Settings</p>
+                <p class="section-title">👕 Kit Configuration</p>
                 <div class="form-group">
                     <label>Template Image</label>
                     <input type="file" id="template" accept="image/*" required>
@@ -129,7 +129,6 @@
 </div>
 
 <script>
-    // Make sure this matches your exact Hugging Face Direct URL with https://
     const BACKEND_URL = "https://cakemakebakekit-kitmaker.hf.space";
     let currentImageBlobUrl = null;
 
@@ -157,10 +156,7 @@
                 body: formData
             });
 
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.detail || "Backend error generating kit");
-            }
+            if (!response.ok) throw new Error("Generation failed");
 
             const blob = await response.blob();
             
@@ -174,7 +170,7 @@
             document.getElementById('result').style.display = 'block';
             document.getElementById('downloadBtn').style.display = 'block';
         } catch (error) {
-            alert("Error: " + error.message);
+            alert("Error generating kit: " + error.message);
         }
     });
 
